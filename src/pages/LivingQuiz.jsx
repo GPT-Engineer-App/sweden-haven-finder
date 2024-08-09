@@ -109,11 +109,17 @@ const LivingQuiz = () => {
   };
 
   const generateRecommendations = () => {
-    const matchingCities = cities.filter(city => 
-      Object.entries(answers).every(([key, value]) => city[key] === value || value === 'any')
-    );
+    const scoredCities = cities.map(city => {
+      let score = 0;
+      Object.entries(answers).forEach(([key, value]) => {
+        if (city[key] === value) score += 2;
+        else if (value === 'any') score += 1;
+      });
+      return { ...city, score };
+    });
 
-    setRecommendations(matchingCities.length > 0 ? matchingCities : cities);
+    const sortedCities = scoredCities.sort((a, b) => b.score - a.score);
+    setRecommendations(sortedCities.slice(0, 5));
   };
 
   const resetQuiz = () => {
@@ -151,17 +157,20 @@ const LivingQuiz = () => {
           ) : (
             <>
               <p className="mb-4">Based on your preferences, here are some recommended places to live in Sweden:</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {recommendations.map((city) => (
-                  <div key={city.name} className="border rounded-lg p-4">
-                    <img src={city.image} alt={city.name} className="w-full h-40 object-cover rounded-lg mb-2" />
-                    <h3 className="font-bold text-lg">{city.name}</h3>
-                    <p>Population: {city.population}</p>
-                    <p>Location: {city.location}</p>
-                    <p>Lifestyle: {city.lifestyle}</p>
-                    <p>Climate: {city.climate}</p>
-                    <p>Nature: {city.nature}</p>
-                    <p>Culture: {city.culture}</p>
+                  <div key={city.name} className="border rounded-lg p-4 flex">
+                    <img src={city.image} alt={city.name} className="w-1/3 h-40 object-cover rounded-lg mr-4" />
+                    <div>
+                      <h3 className="font-bold text-lg">{city.name}</h3>
+                      <p>Match Score: {city.score}</p>
+                      <p>Population: {city.population}</p>
+                      <p>Location: {city.location}</p>
+                      <p>Lifestyle: {city.lifestyle}</p>
+                      <p>Climate: {city.climate}</p>
+                      <p>Nature: {city.nature}</p>
+                      <p>Culture: {city.culture}</p>
+                    </div>
                   </div>
                 ))}
               </div>
