@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2 } from "lucide-react";
 import 'leaflet/dist/leaflet.css';
 
 const swedishCities = [
@@ -19,35 +20,49 @@ const swedishCities = [
   { name: "Norrköping", latitude: 58.5877, longitude: 16.1924, population: 141676 },
 ];
 
+const fetchSwedenInfo = async () => {
+  const response = await fetch('https://restcountries.com/v3.1/name/sweden');
+  const data = await response.json();
+  return data[0];
+};
+
+const fetchISSPosition = async () => {
+  const response = await fetch('http://api.open-notify.org/iss-now.json');
+  const data = await response.json();
+  return {
+    latitude: parseFloat(data.iss_position.latitude),
+    longitude: parseFloat(data.iss_position.longitude),
+  };
+};
+
 const Index = () => {
   const [selectedCity, setSelectedCity] = useState(null);
+  const [issPosition, setIssPosition] = useState(null);
 
-  const getPlaceholderWeather = (city) => {
-    // Generate pseudo-random weather data based on the city name
-    const seed = city.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const random = (min, max) => (seed % (max - min + 1)) + min;
-    
-    return {
-      temperature: random(10, 25),
-      weather_state_name: ['Sunny', 'Cloudy', 'Rainy', 'Windy'][random(0, 3)],
-      humidity: random(30, 80),
-      wind_speed: random(0, 10)
-    };
-  };
-
-  const { data: weather } = useQuery({
-    queryKey: ['weather', selectedCity],
-    queryFn: () => getPlaceholderWeather(selectedCity),
-    enabled: !!selectedCity,
+  const { data: swedenInfo, isLoading: isSwedenInfoLoading } = useQuery({
+    queryKey: ['swedenInfo'],
+    queryFn: fetchSwedenInfo,
   });
 
+  const { data: issData, isLoading: isISSLoading } = useQuery({
+    queryKey: ['issPosition'],
+    queryFn: fetchISSPosition,
+    refetchInterval: 10000, // Refetch every 10 seconds
+  });
+
+  useEffect(() => {
+    if (issData) {
+      setIssPosition(issData);
+    }
+  }, [issData]);
+
   const handleCityClick = (city) => {
-    setSelectedCity(city.name);
+    setSelectedCity(city);
   };
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gray-100">
-      <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center">Find Your Ideal Place in Sweden</h1>
+      <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center">Explore Sweden</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         <Card className="col-span-1 lg:col-span-2">
           <CardHeader>
@@ -66,6 +81,15 @@ const Index = () => {
                   </Popup>
                 </Marker>
               ))}
+              {issPosition && (
+                <Circle
+                  center={[issPosition.latitude, issPosition.longitude]}
+                  pathOptions={{ fillColor: 'red', color: 'red' }}
+                  radius={200000}
+                >
+                  <Popup>ISS Current Location</Popup>
+                </Circle>
+              )}
             </MapContainer>
           </CardContent>
         </Card>
@@ -75,13 +99,13 @@ const Index = () => {
               <CardTitle>Cities in Sweden</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[40vh] md:h-[50vh]">
+              <ScrollArea className="h-[30vh] md:h-[40vh]">
                 <div className="space-y-2">
                   {swedishCities.map((city) => (
                     <Button
                       key={city.name}
                       onClick={() => handleCityClick(city)}
-                      variant={selectedCity === city.name ? "default" : "outline"}
+                      variant={selectedCity?.name === city.name ? "default" : "outline"}
                       className="w-full justify-start"
                     >
                       {city.name}
@@ -93,21 +117,44 @@ const Index = () => {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>City Information</CardTitle>
+              <CardTitle>Sweden Information</CardTitle>
             </CardHeader>
             <CardContent>
-              {selectedCity ? (
-                <>
-                  <h3 className="text-xl font-semibold mb-4">{selectedCity}</h3>
-                  <div className="space-y-2">
-                    <p>Temperature: {weather.temperature.toFixed(1)}°C</p>
-                    <p>Weather: {weather.weather_state_name}</p>
-                    <p>Humidity: {weather.humidity}%</p>
-                    <p>Wind Speed: {weather.wind_speed.toFixed(1)} m/s</p>
-                  </div>
-                </>
+              {isSwedenInfoLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Loading...</span>
+                </div>
+              ) : swedenInfo ? (
+                <div className="space-y-2">
+                  <p><strong>Capital:</strong> {swedenInfo.capital[0]}</p>
+                  <p><strong>Population:</strong> {swedenInfo.population.toLocaleString()}</p>
+                  <p><strong>Area:</strong> {swedenInfo.area.toLocaleString()} km²</p>
+                  <p><strong>Region:</strong> {swedenInfo.region}</p>
+                  <p><strong>Subregion:</strong> {swedenInfo.subregion}</p>
+                </div>
               ) : (
-                <p>Select a city to see more information.</p>
+                <p>Failed to load Sweden information.</p>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>ISS Location</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isISSLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span>Loading ISS position...</span>
+                </div>
+              ) : issPosition ? (
+                <div className="space-y-2">
+                  <p><strong>Latitude:</strong> {issPosition.latitude.toFixed(4)}</p>
+                  <p><strong>Longitude:</strong> {issPosition.longitude.toFixed(4)}</p>
+                </div>
+              ) : (
+                <p>Failed to load ISS position.</p>
               )}
             </CardContent>
           </Card>
