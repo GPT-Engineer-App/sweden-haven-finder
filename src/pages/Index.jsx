@@ -22,36 +22,27 @@ const swedishCities = [
 const Index = () => {
   const [selectedCity, setSelectedCity] = useState(null);
 
-  const API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY'; // Replace with your actual API key
-
-  const fetchWeather = async (city) => {
-    try {
-      const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city},SE&units=metric&appid=${API_KEY}`);
-      if (!response.ok) {
-        throw new Error('Weather data not available');
-      }
-      const data = await response.json();
-      return {
-        temperature: data.main.temp,
-        weather_state_name: data.weather[0].main,
-        humidity: data.main.humidity,
-        wind_speed: data.wind.speed
-      };
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
-      return null;
-    }
+  const getPlaceholderWeather = (city) => {
+    // Generate pseudo-random weather data based on the city name
+    const seed = city.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const random = (min, max) => (seed % (max - min + 1)) + min;
+    
+    return {
+      temperature: random(10, 25),
+      weather_state_name: ['Sunny', 'Cloudy', 'Rainy', 'Windy'][random(0, 3)],
+      humidity: random(30, 80),
+      wind_speed: random(0, 10)
+    };
   };
 
-  const { data: weather, refetch: refetchWeather } = useQuery({
+  const { data: weather } = useQuery({
     queryKey: ['weather', selectedCity],
-    queryFn: () => fetchWeather(selectedCity),
+    queryFn: () => getPlaceholderWeather(selectedCity),
     enabled: !!selectedCity,
   });
 
   const handleCityClick = (city) => {
     setSelectedCity(city.name);
-    refetchWeather();
   };
 
   return (
@@ -108,16 +99,12 @@ const Index = () => {
               {selectedCity ? (
                 <>
                   <h3 className="text-xl font-semibold mb-4">{selectedCity}</h3>
-                  {weather ? (
-                    <div className="space-y-2">
-                      <p>Temperature: {weather.temperature?.toFixed(1) ?? 'N/A'}°C</p>
-                      <p>Weather: {weather.weather_state_name ?? 'N/A'}</p>
-                      <p>Humidity: {weather.humidity ?? 'N/A'}%</p>
-                      <p>Wind Speed: {weather.wind_speed?.toFixed(1) ?? 'N/A'} m/s</p>
-                    </div>
-                  ) : (
-                    <p>Loading weather data...</p>
-                  )}
+                  <div className="space-y-2">
+                    <p>Temperature: {weather.temperature.toFixed(1)}°C</p>
+                    <p>Weather: {weather.weather_state_name}</p>
+                    <p>Humidity: {weather.humidity}%</p>
+                    <p>Wind Speed: {weather.wind_speed.toFixed(1)} m/s</p>
+                  </div>
                 </>
               ) : (
                 <p>Select a city to see more information.</p>
