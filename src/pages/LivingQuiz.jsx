@@ -3,8 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Link } from 'react-router-dom';
-import { navItems } from '../nav-items';
+import Navigation from '../components/Navigation';
 
 const questions = [
   {
@@ -105,7 +104,7 @@ const LivingQuiz = () => {
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gray-100">
       <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center">Sweden Living Preferences Quiz</h1>
-      {navigation}
+      <Navigation />
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>
