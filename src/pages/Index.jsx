@@ -5,19 +5,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import 'leaflet/dist/leaflet.css';
 
 const swedishCities = [
-  { name: "Stockholm", latitude: 59.3293, longitude: 18.0686, population: 935619 },
-  { name: "Gothenburg", latitude: 57.7089, longitude: 11.9746, population: 572799 },
-  { name: "Malmö", latitude: 55.6050, longitude: 13.0038, population: 316588 },
-  { name: "Uppsala", latitude: 59.8586, longitude: 17.6389, population: 168096 },
-  { name: "Västerås", latitude: 59.6099, longitude: 16.5448, population: 119373 },
-  { name: "Örebro", latitude: 59.2753, longitude: 15.2134, population: 115765 },
-  { name: "Linköping", latitude: 58.4108, longitude: 15.6214, population: 158841 },
-  { name: "Helsingborg", latitude: 56.0465, longitude: 12.6942, population: 108334 },
-  { name: "Jönköping", latitude: 57.7826, longitude: 14.1618, population: 139222 },
-  { name: "Norrköping", latitude: 58.5877, longitude: 16.1924, population: 141676 },
+  { name: "Stockholm", latitude: 59.3293, longitude: 18.0686, population: 935619, culture: 5, nature: 3, economy: 5 },
+  { name: "Gothenburg", latitude: 57.7089, longitude: 11.9746, population: 572799, culture: 4, nature: 4, economy: 4 },
+  { name: "Malmö", latitude: 55.6050, longitude: 13.0038, population: 316588, culture: 4, nature: 3, economy: 3 },
+  { name: "Uppsala", latitude: 59.8586, longitude: 17.6389, population: 168096, culture: 4, nature: 4, economy: 3 },
+  { name: "Västerås", latitude: 59.6099, longitude: 16.5448, population: 119373, culture: 3, nature: 4, economy: 3 },
+  { name: "Örebro", latitude: 59.2753, longitude: 15.2134, population: 115765, culture: 3, nature: 4, economy: 3 },
+  { name: "Linköping", latitude: 58.4108, longitude: 15.6214, population: 158841, culture: 3, nature: 4, economy: 3 },
+  { name: "Helsingborg", latitude: 56.0465, longitude: 12.6942, population: 108334, culture: 3, nature: 4, economy: 3 },
+  { name: "Jönköping", latitude: 57.7826, longitude: 14.1618, population: 139222, culture: 3, nature: 5, economy: 3 },
+  { name: "Norrköping", latitude: 58.5877, longitude: 16.1924, population: 141676, culture: 3, nature: 4, economy: 3 },
+];
+
+const quizQuestions = [
+  { id: 'culture', question: 'How important is cultural life and entertainment to you?', options: ['Not important', 'Somewhat important', 'Very important'] },
+  { id: 'nature', question: 'How much do you value access to nature and outdoor activities?', options: ['Not important', 'Somewhat important', 'Very important'] },
+  { id: 'economy', question: 'How important is a strong job market and economy to you?', options: ['Not important', 'Somewhat important', 'Very important'] },
 ];
 
 const fetchSwedenInfo = async () => {
@@ -46,6 +54,9 @@ const fetchISSPosition = async () => {
 const Index = () => {
   const [selectedCity, setSelectedCity] = useState(null);
   const [issPosition, setIssPosition] = useState(null);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
 
   const { data: swedenInfo, isLoading: isSwedenInfoLoading } = useQuery({
     queryKey: ['swedenInfo'],
@@ -67,6 +78,24 @@ const Index = () => {
 
   const handleCityClick = (city) => {
     setSelectedCity(city);
+  };
+
+  const handleQuizAnswer = (questionId, answer) => {
+    setQuizAnswers(prev => ({ ...prev, [questionId]: answer }));
+  };
+
+  const calculateRecommendations = () => {
+    const scores = swedishCities.map(city => {
+      let score = 0;
+      if (quizAnswers.culture === 'Very important') score += city.culture;
+      if (quizAnswers.nature === 'Very important') score += city.nature;
+      if (quizAnswers.economy === 'Very important') score += city.economy;
+      return { ...city, score };
+    });
+
+    const sortedCities = scores.sort((a, b) => b.score - a.score);
+    setRecommendations(sortedCities.slice(0, 3));
+    setQuizCompleted(true);
   };
 
   return (
@@ -103,6 +132,45 @@ const Index = () => {
           </CardContent>
         </Card>
         <div className="space-y-6 md:space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Where Should You Live in Sweden?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!quizCompleted ? (
+                <div className="space-y-4">
+                  {quizQuestions.map((q) => (
+                    <div key={q.id}>
+                      <p className="font-semibold mb-2">{q.question}</p>
+                      <RadioGroup onValueChange={(value) => handleQuizAnswer(q.id, value)}>
+                        {q.options.map((option, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <RadioGroupItem value={option} id={`${q.id}-${index}`} />
+                            <Label htmlFor={`${q.id}-${index}`}>{option}</Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  ))}
+                  <Button onClick={calculateRecommendations} className="w-full mt-4">
+                    Get Recommendations
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="font-semibold mb-2">Top Recommendations:</h3>
+                  <ol className="list-decimal list-inside">
+                    {recommendations.map((city, index) => (
+                      <li key={index}>{city.name}</li>
+                    ))}
+                  </ol>
+                  <Button onClick={() => setQuizCompleted(false)} className="w-full mt-4">
+                    Retake Quiz
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle>Cities in Sweden</CardTitle>
