@@ -3,26 +3,27 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import 'leaflet/dist/leaflet.css';
 
-const fetchCities = async () => {
-  const response = await fetch('https://api.api-ninjas.com/v1/city?country=SE&limit=10', {
-    headers: {
-      'X-Api-Key': 'YOUR_API_NINJAS_KEY'
-    }
-  });
-  return response.json();
-};
+const swedishCities = [
+  { name: "Stockholm", latitude: 59.3293, longitude: 18.0686, population: 935619 },
+  { name: "Gothenburg", latitude: 57.7089, longitude: 11.9746, population: 572799 },
+  { name: "Malmö", latitude: 55.6050, longitude: 13.0038, population: 316588 },
+  { name: "Uppsala", latitude: 59.8586, longitude: 17.6389, population: 168096 },
+  { name: "Västerås", latitude: 59.6099, longitude: 16.5448, population: 119373 },
+  { name: "Örebro", latitude: 59.2753, longitude: 15.2134, population: 115765 },
+  { name: "Linköping", latitude: 58.4108, longitude: 15.6214, population: 158841 },
+  { name: "Helsingborg", latitude: 56.0465, longitude: 12.6942, population: 108334 },
+  { name: "Jönköping", latitude: 57.7826, longitude: 14.1618, population: 139222 },
+  { name: "Norrköping", latitude: 58.5877, longitude: 16.1924, population: 141676 },
+];
 
 const Index = () => {
   const [selectedCity, setSelectedCity] = useState(null);
-  const { data: citiesData, isLoading, error } = useQuery({ queryKey: ['cities'], queryFn: fetchCities });
-
-  const cities = Array.isArray(citiesData) ? citiesData : [];
 
   const fetchWeather = async (city) => {
+    // Note: In a real application, you should use environment variables for API keys
     const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city},SE&appid=YOUR_OPENWEATHERMAP_API_KEY&units=metric`);
     return response.json();
   };
@@ -38,26 +39,23 @@ const Index = () => {
     refetchWeather();
   };
 
-  if (isLoading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  if (error) return <div className="flex justify-center items-center h-screen">Error: {error.message}</div>;
-
   return (
-    <div className="min-h-screen p-8 bg-gray-100">
-      <h1 className="text-4xl font-bold mb-8 text-center">Find Your Ideal Place in Sweden</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <Card className="col-span-1 md:col-span-2">
+    <div className="min-h-screen p-4 md:p-8 bg-gray-100">
+      <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center">Find Your Ideal Place in Sweden</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <Card className="col-span-1 lg:col-span-2">
           <CardHeader>
             <CardTitle>Map of Sweden</CardTitle>
           </CardHeader>
           <CardContent>
-            <MapContainer center={[62.1282, 15.6435]} zoom={4} style={{ height: '60vh', width: '100%' }}>
+            <MapContainer center={[62.1282, 15.6435]} zoom={5} style={{ height: '70vh', width: '100%' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {cities.map((city) => (
+              {swedishCities.map((city) => (
                 <Marker key={city.name} position={[city.latitude, city.longitude]}>
                   <Popup>
                     <div>
                       <h3 className="font-bold">{city.name}</h3>
-                      <p>Population: {city.population}</p>
+                      <p>Population: {city.population.toLocaleString()}</p>
                     </div>
                   </Popup>
                 </Marker>
@@ -65,15 +63,15 @@ const Index = () => {
             </MapContainer>
           </CardContent>
         </Card>
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
           <Card>
             <CardHeader>
               <CardTitle>Cities in Sweden</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[50vh]">
-                <div className="space-y-4">
-                  {cities.map((city) => (
+              <ScrollArea className="h-[40vh] md:h-[50vh]">
+                <div className="space-y-2">
+                  {swedishCities.map((city) => (
                     <Button
                       key={city.name}
                       onClick={() => handleCityClick(city)}
