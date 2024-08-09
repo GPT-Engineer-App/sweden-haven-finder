@@ -23,9 +23,17 @@ const Index = () => {
   const [selectedCity, setSelectedCity] = useState(null);
 
   const fetchWeather = async (city) => {
-    // Note: In a real application, you should use environment variables for API keys
-    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city},SE&appid=YOUR_OPENWEATHERMAP_API_KEY&units=metric`);
-    return response.json();
+    try {
+      // Note: In a real application, you should use environment variables for API keys
+      const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city},SE&appid=YOUR_OPENWEATHERMAP_API_KEY&units=metric`);
+      if (!response.ok) {
+        throw new Error('Weather data not available');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      return null;
+    }
   };
 
   const { data: weather, refetch: refetchWeather } = useQuery({
@@ -93,12 +101,14 @@ const Index = () => {
               {selectedCity ? (
                 <>
                   <h3 className="text-xl font-semibold mb-4">{selectedCity}</h3>
-                  {weather && (
+                  {weather ? (
                     <div className="space-y-2">
-                      <p>Temperature: {weather.main.temp}°C</p>
-                      <p>Weather: {weather.weather[0].description}</p>
-                      <p>Humidity: {weather.main.humidity}%</p>
+                      <p>Temperature: {weather.main?.temp ?? 'N/A'}°C</p>
+                      <p>Weather: {weather.weather?.[0]?.description ?? 'N/A'}</p>
+                      <p>Humidity: {weather.main?.humidity ?? 'N/A'}%</p>
                     </div>
+                  ) : (
+                    <p>Weather data not available. Please try again later.</p>
                   )}
                 </>
               ) : (
