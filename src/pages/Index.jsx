@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import 'leaflet/dist/leaflet.css';
 
 const fetchCities = async () => {
@@ -51,43 +52,63 @@ const Index = () => {
           <CardContent>
             <MapContainer center={[62.1282, 15.6435]} zoom={4} style={{ height: '60vh', width: '100%' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {cities.length > 0 ? cities.map((city) => (
+              {cities.map((city) => (
                 <Marker key={city.name} position={[city.latitude, city.longitude]}>
                   <Popup>
                     <div>
                       <h3 className="font-bold">{city.name}</h3>
                       <p>Population: {city.population}</p>
-                      <Button onClick={() => handleCityClick(city)}>Select City</Button>
                     </div>
                   </Popup>
                 </Marker>
-              )) : (
-                <div className="text-center p-4">No cities data available</div>
-              )}
+              ))}
             </MapContainer>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>City Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {selectedCity ? (
-              <>
-                <h3 className="text-xl font-semibold mb-4">{selectedCity}</h3>
-                {weather && (
-                  <div>
-                    <p>Temperature: {weather.main.temp}°C</p>
-                    <p>Weather: {weather.weather[0].description}</p>
-                    <p>Humidity: {weather.main.humidity}%</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p>Select a city on the map to see more information.</p>
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Cities in Sweden</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[50vh]">
+                <div className="space-y-4">
+                  {cities.map((city) => (
+                    <Button
+                      key={city.name}
+                      onClick={() => handleCityClick(city)}
+                      variant={selectedCity === city.name ? "default" : "outline"}
+                      className="w-full justify-start"
+                    >
+                      {city.name}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>City Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedCity ? (
+                <>
+                  <h3 className="text-xl font-semibold mb-4">{selectedCity}</h3>
+                  {weather && (
+                    <div className="space-y-2">
+                      <p>Temperature: {weather.main.temp}°C</p>
+                      <p>Weather: {weather.weather[0].description}</p>
+                      <p>Humidity: {weather.main.humidity}%</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p>Select a city to see more information.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
