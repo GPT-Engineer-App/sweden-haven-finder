@@ -24,12 +24,24 @@ const Index = () => {
 
   const fetchWeather = async (city) => {
     try {
-      // Note: In a real application, you should use environment variables for API keys
-      const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city},SE&appid=YOUR_OPENWEATHERMAP_API_KEY&units=metric`);
-      if (!response.ok) {
+      // First, we need to get the location ID for the city
+      const locationResponse = await fetch(`https://www.metaweather.com/api/location/search/?query=${city}`);
+      if (!locationResponse.ok) {
+        throw new Error('Location data not available');
+      }
+      const locations = await locationResponse.json();
+      if (locations.length === 0) {
+        throw new Error('City not found');
+      }
+      const woeid = locations[0].woeid;
+
+      // Now we can fetch the weather data using the location ID
+      const weatherResponse = await fetch(`https://www.metaweather.com/api/location/${woeid}/`);
+      if (!weatherResponse.ok) {
         throw new Error('Weather data not available');
       }
-      return response.json();
+      const weatherData = await weatherResponse.json();
+      return weatherData.consolidated_weather[0]; // Return today's weather
     } catch (error) {
       console.error('Error fetching weather data:', error);
       return null;
@@ -103,9 +115,10 @@ const Index = () => {
                   <h3 className="text-xl font-semibold mb-4">{selectedCity}</h3>
                   {weather ? (
                     <div className="space-y-2">
-                      <p>Temperature: {weather.main?.temp ?? 'N/A'}°C</p>
-                      <p>Weather: {weather.weather?.[0]?.description ?? 'N/A'}</p>
-                      <p>Humidity: {weather.main?.humidity ?? 'N/A'}%</p>
+                      <p>Temperature: {weather.the_temp?.toFixed(1) ?? 'N/A'}°C</p>
+                      <p>Weather: {weather.weather_state_name ?? 'N/A'}</p>
+                      <p>Humidity: {weather.humidity ?? 'N/A'}%</p>
+                      <p>Wind Speed: {weather.wind_speed?.toFixed(1) ?? 'N/A'} mph</p>
                     </div>
                   ) : (
                     <p>Weather data not available. Please try again later.</p>
