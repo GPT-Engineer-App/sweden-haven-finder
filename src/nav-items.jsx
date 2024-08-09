@@ -1,6 +1,8 @@
-import { Home, Map, HelpCircle } from "lucide-react";
+import { Map, HelpCircle } from "lucide-react";
 import Index from "./pages/Index.jsx";
-import LivingQuiz from "./pages/LivingQuiz.jsx";
+import React from 'react';
+
+const LivingQuiz = React.lazy(() => import('./pages/LivingQuiz.jsx'));
 
 /**
  * Central place for defining the navigation items. Used for navigation components and routing.
@@ -16,6 +18,6 @@ export const navItems = [
     title: "Living Preferences Quiz",
     to: "/quiz",
     icon: <HelpCircle className="h-4 w-4" />,
-    page: <LivingQuiz />,
+    page: <React.Suspense fallback={<div>Loading...</div>}><LivingQuiz /></React.Suspense>,
   },
 ];
