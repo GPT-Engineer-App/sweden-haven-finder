@@ -17,7 +17,9 @@ const fetchCities = async () => {
 
 const Index = () => {
   const [selectedCity, setSelectedCity] = useState(null);
-  const { data: cities, isLoading, error } = useQuery({ queryKey: ['cities'], queryFn: fetchCities });
+  const { data: citiesData, isLoading, error } = useQuery({ queryKey: ['cities'], queryFn: fetchCities });
+
+  const cities = Array.isArray(citiesData) ? citiesData : [];
 
   const fetchWeather = async (city) => {
     const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city},SE&appid=YOUR_OPENWEATHERMAP_API_KEY&units=metric`);
@@ -49,7 +51,7 @@ const Index = () => {
           <CardContent>
             <MapContainer center={[62.1282, 15.6435]} zoom={4} style={{ height: '60vh', width: '100%' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              {cities.map((city) => (
+              {cities.length > 0 ? cities.map((city) => (
                 <Marker key={city.name} position={[city.latitude, city.longitude]}>
                   <Popup>
                     <div>
@@ -59,7 +61,9 @@ const Index = () => {
                     </div>
                   </Popup>
                 </Marker>
-              ))}
+              )) : (
+                <div className="text-center p-4">No cities data available</div>
+              )}
             </MapContainer>
           </CardContent>
         </Card>
