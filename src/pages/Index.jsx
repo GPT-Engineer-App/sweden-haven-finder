@@ -27,6 +27,11 @@ const quizQuestions = [
   { id: 'culture', question: 'How important is cultural life and entertainment to you?', options: ['Not important', 'Somewhat important', 'Very important'] },
   { id: 'nature', question: 'How much do you value access to nature and outdoor activities?', options: ['Not important', 'Somewhat important', 'Very important'] },
   { id: 'economy', question: 'How important is a strong job market and economy to you?', options: ['Not important', 'Somewhat important', 'Very important'] },
+  { id: 'weather', question: 'What\'s your preferred weather?', options: ['I love the cold!', 'Mild temperatures are nice', 'The warmer, the better'] },
+  { id: 'citySize', question: 'What size of city do you prefer?', options: ['Small and cozy', 'Medium-sized', 'Large and bustling'] },
+  { id: 'education', question: 'How important are educational opportunities?', options: ['Not a priority', 'Somewhat important', 'Very important'] },
+  { id: 'cuisine', question: 'How adventurous are you with food?', options: ['I stick to what I know', 'I like trying new things occasionally', 'I\'m a total foodie!'] },
+  { id: 'transport', question: 'What\'s your preferred mode of transportation?', options: ['I love driving', 'I prefer public transport', 'I\'m all about cycling and walking'] },
 ];
 
 const fetchSwedenInfo = async () => {
@@ -58,6 +63,7 @@ const Index = () => {
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [quizScore, setQuizScore] = useState(0);
 
   const { data: swedenInfo, isLoading: isSwedenInfoLoading } = useQuery({
     queryKey: ['swedenInfo'],
@@ -88,15 +94,33 @@ const Index = () => {
   const calculateRecommendations = () => {
     const scores = swedishCities.map(city => {
       let score = 0;
-      if (quizAnswers.culture === 'Very important') score += city.culture;
-      if (quizAnswers.nature === 'Very important') score += city.nature;
-      if (quizAnswers.economy === 'Very important') score += city.economy;
+      if (quizAnswers.culture === 'Very important') score += city.culture * 2;
+      else if (quizAnswers.culture === 'Somewhat important') score += city.culture;
+      
+      if (quizAnswers.nature === 'Very important') score += city.nature * 2;
+      else if (quizAnswers.nature === 'Somewhat important') score += city.nature;
+      
+      if (quizAnswers.economy === 'Very important') score += city.economy * 2;
+      else if (quizAnswers.economy === 'Somewhat important') score += city.economy;
+      
+      // Additional scoring based on new questions
+      if (quizAnswers.weather === 'I love the cold!' && city.name === 'Stockholm') score += 2;
+      if (quizAnswers.citySize === 'Large and bustling' && city.population > 500000) score += 2;
+      if (quizAnswers.education === 'Very important' && ['Stockholm', 'Uppsala', 'Lund'].includes(city.name)) score += 2;
+      if (quizAnswers.cuisine === 'I\'m a total foodie!' && ['Stockholm', 'Gothenburg', 'Malmö'].includes(city.name)) score += 2;
+      if (quizAnswers.transport === 'I prefer public transport' && ['Stockholm', 'Gothenburg'].includes(city.name)) score += 2;
+
       return { ...city, score };
     });
 
     const sortedCities = scores.sort((a, b) => b.score - a.score);
     setRecommendations(sortedCities.slice(0, 3));
     setQuizCompleted(true);
+
+    // Calculate quiz score
+    const totalQuestions = Object.keys(quizAnswers).length;
+    const score = Math.round((sortedCities[0].score / (totalQuestions * 2)) * 100);
+    setQuizScore(score);
   };
 
   return (
@@ -158,14 +182,31 @@ const Index = () => {
                   </Button>
                 </div>
               ) : (
-                <div>
+                <div className="space-y-4">
+                  <h3 className="font-semibold mb-2">Your Sweden Living Score: {quizScore}%</h3>
+                  <p className="text-sm text-gray-600">
+                    {quizScore < 50 ? "Sweden might be a challenge for you, but challenges can be exciting!" :
+                     quizScore < 75 ? "Sweden could be a good fit for you!" :
+                     "Wow! You and Sweden are a perfect match!"}
+                  </p>
                   <h3 className="font-semibold mb-2">Top Recommendations:</h3>
-                  <ol className="list-decimal list-inside">
+                  <ol className="list-decimal list-inside space-y-2">
                     {recommendations.map((city, index) => (
-                      <li key={index}>{city.name}</li>
+                      <li key={index} className="flex items-center justify-between">
+                        <span>{city.name}</span>
+                        <span className="text-sm text-gray-600">Match: {Math.round((city.score / (Object.keys(quizAnswers).length * 2)) * 100)}%</span>
+                      </li>
                     ))}
                   </ol>
-                  <Button onClick={() => setQuizCompleted(false)} className="w-full mt-4">
+                  <div className="mt-4 p-4 bg-blue-100 rounded-md">
+                    <h4 className="font-semibold mb-2">Fun Fact:</h4>
+                    <p className="text-sm">
+                      {recommendations[0]?.name === 'Stockholm' ? "Did you know Stockholm is built on 14 islands connected by 57 bridges?" :
+                       recommendations[0]?.name === 'Gothenburg' ? "Gothenburg is home to Liseberg, the largest amusement park in Scandinavia!" :
+                       "Sweden is one of the best countries for work-life balance, with a standard 5 weeks of vacation per year!"}
+                    </p>
+                  </div>
+                  <Button onClick={() => {setQuizCompleted(false); setQuizAnswers({});}} className="w-full mt-4">
                     Retake Quiz
                   </Button>
                 </div>
