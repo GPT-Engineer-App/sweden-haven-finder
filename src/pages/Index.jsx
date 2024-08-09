@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import 'leaflet/dist/leaflet.css';
-import Navigation from '../components/Navigation';
+import Navigation from '../components/Navigation.jsx';
 
 const swedishCities = [
   { name: "Stockholm", latitude: 59.3293, longitude: 18.0686, population: 935619 },
