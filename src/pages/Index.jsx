@@ -53,19 +53,6 @@ const Index = () => {
     queryFn: fetchSwedenInfo,
   });
 
-  const navigation = (
-    <nav className="mb-6 flex justify-center space-x-4">
-      {navItems.map((item) => (
-        <Link
-          key={item.to}
-          to={item.to}
-          className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
-        >
-          {item.title}
-        </Link>
-      ))}
-    </nav>
-  );
 
   const { data: issData, isLoading: isISSLoading, error: issError } = useQuery({
     queryKey: ['issPosition'],
