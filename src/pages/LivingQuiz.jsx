@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Navigation from '../components/Navigation';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const questions = [
   {
@@ -64,8 +66,8 @@ const questions = [
 ];
 
 const cities = [
-  { name: 'Stockholm', population: 'large', location: 'central', lifestyle: 'urban', climate: 'moderate', nature: 'coast', culture: 'cosmopolitan', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Stockholm_skyline_from_S%C3%B6dermalm.jpg/640px-Stockholm_skyline_from_S%C3%B6dermalm.jpg' },
-  { name: 'Gothenburg', population: 'large', location: 'south', lifestyle: 'urban', climate: 'mild', nature: 'coast', culture: 'mix', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/G%C3%B6teborg_-_KMB_-_16001000010352.jpg/640px-G%C3%B6teborg_-_KMB_-_16001000010352.jpg' },
+  { name: 'Stockholm', population: 'large', location: 'central', lifestyle: 'urban', climate: 'moderate', nature: 'coast', culture: 'cosmopolitan', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Stockholm_skyline_from_S%C3%B6dermalm.jpg/640px-Stockholm_skyline_from_S%C3%B6dermalm.jpg', latitude: 59.3293, longitude: 18.0686 },
+  { name: 'Gothenburg', population: 'large', location: 'south', lifestyle: 'urban', climate: 'mild', nature: 'coast', culture: 'mix', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/G%C3%B6teborg_-_KMB_-_16001000010352.jpg/640px-G%C3%B6teborg_-_KMB_-_16001000010352.jpg', latitude: 57.7089, longitude: 11.9746 },
   { name: 'Malmö', population: 'medium', location: 'south', lifestyle: 'urban', climate: 'mild', nature: 'coast', culture: 'cosmopolitan', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Malm%C3%B6_-_panoramio_-_Laima_Grebzde_%281%29.jpg/640px-Malm%C3%B6_-_panoramio_-_Laima_Grebzde_%281%29.jpg' },
   { name: 'Uppsala', population: 'medium', location: 'central', lifestyle: 'suburban', climate: 'moderate', nature: 'forest', culture: 'mix', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Uppsala_Cathedral_from_the_Castle.jpg/640px-Uppsala_Cathedral_from_the_Castle.jpg' },
   { name: 'Västerås', population: 'medium', location: 'central', lifestyle: 'suburban', climate: 'moderate', nature: 'forest', culture: 'traditional', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/V%C3%A4ster%C3%A5s_Skyline_2019.jpg/640px-V%C3%A4ster%C3%A5s_Skyline_2019.jpg' },
@@ -157,11 +159,10 @@ const LivingQuiz = () => {
           ) : (
             <>
               <p className="mb-4">Based on your preferences, here are some recommended places to live in Sweden:</p>
-              <div className="grid grid-cols-1 gap-4">
-                {recommendations.map((city) => (
-                  <div key={city.name} className="border rounded-lg p-4 flex">
-                    <img src="/placeholder.svg" alt={city.name} className="w-1/3 h-40 object-cover rounded-lg mr-4" />
-                    <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  {recommendations.map((city) => (
+                    <div key={city.name} className="border rounded-lg p-4">
                       <h3 className="font-bold text-lg">{city.name}</h3>
                       <p>Match Score: {city.score}</p>
                       <p>Population: {city.population}</p>
@@ -171,8 +172,23 @@ const LivingQuiz = () => {
                       <p>Nature: {city.nature}</p>
                       <p>Culture: {city.culture}</p>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="h-[500px]">
+                  <MapContainer center={[62.1282, 15.6435]} zoom={4} style={{ height: '100%', width: '100%' }}>
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    {recommendations.map((city) => (
+                      <Marker key={city.name} position={[city.latitude, city.longitude]}>
+                        <Popup>
+                          <div>
+                            <h3 className="font-bold">{city.name}</h3>
+                            <p>Match Score: {city.score}</p>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    ))}
+                  </MapContainer>
+                </div>
               </div>
               <Button onClick={resetQuiz} className="mt-4">Take the Quiz Again</Button>
             </>
