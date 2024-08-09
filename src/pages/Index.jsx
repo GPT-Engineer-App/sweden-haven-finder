@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import { useQuery } from '@tanstack/react-query';
+import L from 'leaflet';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -84,7 +85,17 @@ const Index = () => {
             <MapContainer center={[62.1282, 15.6435]} zoom={5} style={{ height: '70vh', width: '100%' }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               {swedishCities.map((city) => (
-                <Marker key={city.name} position={[city.latitude, city.longitude]}>
+                <Marker 
+                  key={city.name} 
+                  position={[city.latitude, city.longitude]}
+                  icon={L.icon({
+                    iconUrl: '/placeholder.svg',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                  })}
+                >
                   <Popup>
                     <div>
                       <h3 className="font-bold">{city.name}</h3>

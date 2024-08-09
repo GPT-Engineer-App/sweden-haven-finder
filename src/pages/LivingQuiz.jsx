@@ -160,7 +160,7 @@ const LivingQuiz = () => {
               <div className="grid grid-cols-1 gap-4">
                 {recommendations.map((city) => (
                   <div key={city.name} className="border rounded-lg p-4 flex">
-                    <img src={city.image} alt={city.name} className="w-1/3 h-40 object-cover rounded-lg mr-4" />
+                    <img src="/placeholder.svg" alt={city.name} className="w-1/3 h-40 object-cover rounded-lg mr-4" />
                     <div>
                       <h3 className="font-bold text-lg">{city.name}</h3>
                       <p>Match Score: {city.score}</p>
