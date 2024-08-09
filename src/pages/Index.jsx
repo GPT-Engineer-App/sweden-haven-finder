@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import * as React from 'react';
 import { Label } from "@/components/ui/label";
 import 'leaflet/dist/leaflet.css';
 
