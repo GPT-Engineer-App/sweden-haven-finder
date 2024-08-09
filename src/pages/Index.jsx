@@ -27,12 +27,20 @@ const fetchSwedenInfo = async () => {
 };
 
 const fetchISSPosition = async () => {
-  const response = await fetch('http://api.open-notify.org/iss-now.json');
-  const data = await response.json();
-  return {
-    latitude: parseFloat(data.iss_position.latitude),
-    longitude: parseFloat(data.iss_position.longitude),
-  };
+  try {
+    const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+    if (!response.ok) {
+      throw new Error('Failed to fetch ISS position');
+    }
+    const data = await response.json();
+    return {
+      latitude: parseFloat(data.latitude),
+      longitude: parseFloat(data.longitude),
+    };
+  } catch (error) {
+    console.error('Error fetching ISS position:', error);
+    throw error;
+  }
 };
 
 const Index = () => {
@@ -44,10 +52,11 @@ const Index = () => {
     queryFn: fetchSwedenInfo,
   });
 
-  const { data: issData, isLoading: isISSLoading } = useQuery({
+  const { data: issData, isLoading: isISSLoading, error: issError } = useQuery({
     queryKey: ['issPosition'],
     queryFn: fetchISSPosition,
     refetchInterval: 10000, // Refetch every 10 seconds
+    retry: 2, // Retry twice before showing error
   });
 
   useEffect(() => {
@@ -148,13 +157,15 @@ const Index = () => {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   <span>Loading ISS position...</span>
                 </div>
+              ) : issError ? (
+                <p className="text-red-500">Failed to load ISS position. Please try again later.</p>
               ) : issPosition ? (
                 <div className="space-y-2">
                   <p><strong>Latitude:</strong> {issPosition.latitude.toFixed(4)}</p>
                   <p><strong>Longitude:</strong> {issPosition.longitude.toFixed(4)}</p>
                 </div>
               ) : (
-                <p>Failed to load ISS position.</p>
+                <p>No ISS position data available.</p>
               )}
             </CardContent>
           </Card>
