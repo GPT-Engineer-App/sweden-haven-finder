@@ -121,7 +121,11 @@ const LivingQuiz = () => {
     });
 
     const sortedCities = scoredCities.sort((a, b) => b.score - a.score);
-    setRecommendations(sortedCities.slice(0, 5));
+    const topCities = sortedCities.slice(0, 5);
+    
+    // Filter out cities without latitude and longitude
+    const validCities = topCities.filter(city => city.latitude && city.longitude);
+    setRecommendations(validCities);
   };
 
   const resetQuiz = () => {
@@ -178,14 +182,16 @@ const LivingQuiz = () => {
                   <MapContainer center={[62.1282, 15.6435]} zoom={4} style={{ height: '100%', width: '100%' }}>
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     {recommendations.map((city) => (
-                      <Marker key={city.name} position={[city.latitude, city.longitude]}>
-                        <Popup>
-                          <div>
-                            <h3 className="font-bold">{city.name}</h3>
-                            <p>Match Score: {city.score}</p>
-                          </div>
-                        </Popup>
-                      </Marker>
+                      city.latitude && city.longitude ? (
+                        <Marker key={city.name} position={[city.latitude, city.longitude]}>
+                          <Popup>
+                            <div>
+                              <h3 className="font-bold">{city.name}</h3>
+                              <p>Match Score: {city.score}</p>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      ) : null
                     ))}
                   </MapContainer>
                 </div>
