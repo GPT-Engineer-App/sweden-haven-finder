@@ -22,26 +22,21 @@ const swedishCities = [
 const Index = () => {
   const [selectedCity, setSelectedCity] = useState(null);
 
+  const API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY'; // Replace with your actual API key
+
   const fetchWeather = async (city) => {
     try {
-      // First, we need to get the location ID for the city
-      const locationResponse = await fetch(`https://www.metaweather.com/api/location/search/?query=${city}`);
-      if (!locationResponse.ok) {
-        throw new Error('Location data not available');
-      }
-      const locations = await locationResponse.json();
-      if (locations.length === 0) {
-        throw new Error('City not found');
-      }
-      const woeid = locations[0].woeid;
-
-      // Now we can fetch the weather data using the location ID
-      const weatherResponse = await fetch(`https://www.metaweather.com/api/location/${woeid}/`);
-      if (!weatherResponse.ok) {
+      const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city},SE&units=metric&appid=${API_KEY}`);
+      if (!response.ok) {
         throw new Error('Weather data not available');
       }
-      const weatherData = await weatherResponse.json();
-      return weatherData.consolidated_weather[0]; // Return today's weather
+      const data = await response.json();
+      return {
+        temperature: data.main.temp,
+        weather_state_name: data.weather[0].main,
+        humidity: data.main.humidity,
+        wind_speed: data.wind.speed
+      };
     } catch (error) {
       console.error('Error fetching weather data:', error);
       return null;
@@ -115,13 +110,13 @@ const Index = () => {
                   <h3 className="text-xl font-semibold mb-4">{selectedCity}</h3>
                   {weather ? (
                     <div className="space-y-2">
-                      <p>Temperature: {weather.the_temp?.toFixed(1) ?? 'N/A'}°C</p>
+                      <p>Temperature: {weather.temperature?.toFixed(1) ?? 'N/A'}°C</p>
                       <p>Weather: {weather.weather_state_name ?? 'N/A'}</p>
                       <p>Humidity: {weather.humidity ?? 'N/A'}%</p>
-                      <p>Wind Speed: {weather.wind_speed?.toFixed(1) ?? 'N/A'} mph</p>
+                      <p>Wind Speed: {weather.wind_speed?.toFixed(1) ?? 'N/A'} m/s</p>
                     </div>
                   ) : (
-                    <p>Weather data not available. Please try again later.</p>
+                    <p>Loading weather data...</p>
                   )}
                 </>
               ) : (
