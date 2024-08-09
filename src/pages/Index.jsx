@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import 'leaflet/dist/leaflet.css';
+import { Link } from 'react-router-dom';
+import { navItems } from '../nav-items';
 
 const swedishCities = [
   { name: "Stockholm", latitude: 59.3293, longitude: 18.0686, population: 935619 },
@@ -52,6 +54,20 @@ const Index = () => {
     queryFn: fetchSwedenInfo,
   });
 
+  const navigation = (
+    <nav className="mb-6 flex justify-center space-x-4">
+      {navItems.map((item) => (
+        <Link
+          key={item.to}
+          to={item.to}
+          className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+        >
+          {item.title}
+        </Link>
+      ))}
+    </nav>
+  );
+
   const { data: issData, isLoading: isISSLoading, error: issError } = useQuery({
     queryKey: ['issPosition'],
     queryFn: fetchISSPosition,
@@ -72,6 +88,7 @@ const Index = () => {
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gray-100">
       <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center">Explore Sweden</h1>
+      {navigation}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         <Card className="col-span-1 lg:col-span-2">
           <CardHeader>

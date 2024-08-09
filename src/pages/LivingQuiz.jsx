@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Link } from 'react-router-dom';
+import { navItems } from '../nav-items';
 
 const questions = [
   {
@@ -62,6 +64,20 @@ const LivingQuiz = () => {
     setAnswers({ ...answers, [questions[currentQuestion].id]: value });
   };
 
+  const navigation = (
+    <nav className="mb-6 flex justify-center space-x-4">
+      {navItems.map((item) => (
+        <Link
+          key={item.to}
+          to={item.to}
+          className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+        >
+          {item.title}
+        </Link>
+      ))}
+    </nav>
+  );
+
   const handleNext = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
@@ -89,6 +105,7 @@ const LivingQuiz = () => {
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gray-100">
       <h1 className="text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-center">Sweden Living Preferences Quiz</h1>
+      {navigation}
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>
